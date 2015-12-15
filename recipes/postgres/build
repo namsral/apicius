@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+set -e
+
+if [ "$EUID" -ne 0 ]; then
+    echo "This script uses functionality which requires root privileges"
+    exit 1
+fi
+
+# Start the build with an empty ACI
+acbuild --debug begin
+
+# In the event of the script exiting, end the build
+acbuildEnd() {
+    export EXIT=$?
+    acbuild --debug end && exit $EXIT 
+}
+trap acbuildEnd EXIT
+
+# Name the ACI
+acbuild --debug set-name ac.setch.net/postgres
+
+# Based on alpine
+acbuild --debug dep add quay.io/coreos/alpine-sh
+
+# Install postgres
+acbuild --debug run apk update
+acbuild --debug run apk add postgresql postgresql-client
+
+# Add a port for http traffic over port 80
+acbuild --debug port add postgres tcp 5432
+
+# Add a mount point for files to serve
+acbuild --debug mount add pgdata /var/lib/postgresql/9.4/data
+
+# Copy files
+acbuild --debug copy ./extra/init /init
+acbuild --debug copy ./extra/pg_hba.conf /etc/postgresql/9.4/main/pg_hba.conf
+acbuild --debug copy ./extra/postgresql.conf /etc/postgresql/9.4/main/postgresql.conf
+
+# Run init which will initialize the database if needed and run postres
+acbuild --debug set-exec -- /init
+	
+# Save the ACI and sign with GNUPG
+ACIPATH=$(mktemp).aci
+acbuild --debug write $ACIPATH --overwrite
+gpg --no-default-keyring \
+    --armor \
+    --detach-sig \
+    --output $ACIPATH.asc $ACIPATH && echo "Writing ASC to $ACIPATH.asc" 
