@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+
+# Copyright (c) 2015 Lars Wiegman. All rights reserved.
+
+# Build, sign and upload ACIs (App Container Image) from predefined
+# recipes.
+
+# fail on script errors and pipe errors
+set -e -o pipefail
+
+show_help() {
+cat << EOF
+Usage: ${0##*/} [-esuhv] [recipe]
+Build, sign and upload ACI files.
+
+    -s          sign the built ACI file with gpg
+    -u          upload the ACI and possible signature to a GitHub release
+    -h          show help message
+EOF
+}
+
+# Script options with default values
+SIGNACI=
+UPGITHUB=
+
+# Recipe should always be the last argument
+RECIPE=${@: -1}
+
+# A string with command options
+options=$@
+# An array with all the arguments
+arguments=($options)
+# Loop index
+index=0
+for argument in $options
+do
+    index=i=$(( $i + 1 ))
+    case $argument in
+      -s|--sign) SIGNACI=1 ;;
+      -u|--upload-github) UPGITHUB=1 ;;
+      -h|--help) show_help ;;
+    esac
+done
+
+upload_github() {
+    test -n "$GHTOKEN" -a "$GHOWNER" -a "$GHREPO" -a "$GHTAG" || { echo 'GitHub environment not set'  >&2; exit 1; }
+    release_url="https://api.github.com/repos/${GHOWNER}/${GHREPO}/releases/tags/${GHTAG}"
+    upload_url=$(curl -s -L -H "Authorization: token $GHTOKEN" "$release_url" |jq -r '.["upload_url"]| .[0:-13]')
+
+    local files=($@)
+    for fpath in "${files[@]}"; do
+        test -f "$fpath" || { echo "No such file: $fpath"  >&2; exit 1; }
+        case "$fpath" in
+            *.aci) mediatype="application/x-tar" ;;
+            *.asc) mediatype="text/plain" ;;
+            *) mediatype="application/octet-stream" ;;
+        esac
+        fname=${fpath##*/}
+        (curl -i --data-binary @"$fpath" \
+            -H "Authorization: token $GHTOKEN" \
+            -H "Accept: application/vnd.github.manifold-preview" \
+            -H "Content-Type: $mediatype" \
+            "${upload_url}?name=$fname")
+    done
+}
+
+follow_recipe() {
+    local rcp="$1"
+    test -d "$rcp" || { echo 'No recipe specified.' >&2; exit 1; }
+    test -f "$rcp/build" || { echo 'No recipe build script found.' >&2; exit 1; }
+
+    T=$(mktemp -d)
+    echo "Bulding ACI in $T"
+    cp -r "$rcp"/* "$T"
+    cd "$T"
+    sudo PATH=$PATH bash ./build
+    sudo chown $EUID -R "$T"
+
+    for acipath in $T/*.aci
+    do
+        ascpath="${acipath}.asc"
+        test -n "$SIGNACI" && (gpg --no-default-keyring --armor \
+            --homedir "$GNUPGHOME" --output $ascpath --detach-sig $acipath)
+        test -n "$UPGITHUB" && (upload_github "$acipath" "$ascpath")
+    done
+}
+
+follow_recipe "$RECIPE"
