@@ -17,14 +17,14 @@ acbuildEnd() {
 trap acbuildEnd EXIT
 
 # Name the ACI
-acbuild --debug set-name namsral.com/nginx
+acbuild --debug set-name namsral.com/coldsweat
 
 # Based on alpine
 acbuild --debug dep add quay.io/coreos/alpine-sh
 
 # Install nginx
 acbuild --debug run apk update
-acbuild --debug run apk add nginx
+acbuild --debug run apk add python py-pip
 
 # Add a port for http traffic over port 80
 acbuild --debug port add http tcp 80
@@ -38,5 +38,9 @@ acbuild --debug copy ./extra/nginx.conf /etc/nginx/nginx.conf
 # Run nginx in the foreground
 acbuild --debug set-exec -- /usr/sbin/nginx -g "daemon off;"
 
-test -n "$ACIPATH" || ACIPATH=nginx-latest-linux-amd64.aci
-acbuild --debug write $ACIPATH
+ACIPATH=$(mktemp).aci
+acbuild --debug write $ACIPATH --overwrite
+gpg --no-default-keyring \
+    --armor \
+    --detach-sig \
+    --output $ACIPATH.asc $ACIPATH && echo "Writing ASC to $ACIPATH.asc" 

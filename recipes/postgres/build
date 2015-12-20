@@ -17,7 +17,7 @@ acbuildEnd() {
 trap acbuildEnd EXIT
 
 # Name the ACI
-acbuild --debug set-name ac.setch.net/postgres
+acbuild --debug set-name namsral.com/postgres
 
 # Based on alpine
 acbuild --debug dep add quay.io/coreos/alpine-sh
@@ -39,11 +39,7 @@ acbuild --debug copy ./extra/postgresql.conf /etc/postgresql/9.4/main/postgresql
 
 # Run init which will initialize the database if needed and run postres
 acbuild --debug set-exec -- /init
-	
+
 # Save the ACI and sign with GNUPG
-ACIPATH=$(mktemp).aci
+test -n "$ACIPATH" || ACIPATH=postgres-latest-linux-amd64.aci
 acbuild --debug write $ACIPATH --overwrite
-gpg --no-default-keyring \
-    --armor \
-    --detach-sig \
-    --output $ACIPATH.asc $ACIPATH && echo "Writing ASC to $ACIPATH.asc" 

@@ -38,5 +38,9 @@ acbuild --debug copy ./extra/nginx.conf /etc/nginx/nginx.conf
 # Run nginx in the foreground
 acbuild --debug set-exec -- /usr/sbin/nginx -g "daemon off;"
 
-test -n "$ACIPATH" || ACIPATH=nginx-latest-linux-amd64.aci
-acbuild --debug write $ACIPATH
+ACIPATH=$(mktemp).aci
+acbuild --debug write $ACIPATH --overwrite
+gpg --no-default-keyring \
+    --armor \
+    --detach-sig \
+    --output $ACIPATH.asc $ACIPATH && echo "Writing ASC to $ACIPATH.asc" 
