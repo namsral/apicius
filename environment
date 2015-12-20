@@ -1,0 +1,16 @@
+# Make sure `acbuild` is installed and available, on CoreOS:
+#     $ cd $(mktemp -d)
+#     $ git clone https://github.com/appc/acbuild .
+#     $ ./build-docker
+#     $ mkdir -p /home/core/bin
+#     $ cp ./bin/acbuild /home/core/bin
+#PATH=/home/core/bin:$PATH
+
+# GnuPG homedir
+#export GNUPGHOME=
+
+# GitHub environment for upload ACI and signature to a repo release
+#export GHTOKEN=
+#export GHOWNER=
+#export GHREPO=
+#export GHTAG=latest
