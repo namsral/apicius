@@ -30,7 +30,7 @@ acbuild --debug run apk add nginx
 acbuild --debug port add http tcp 80
 
 # Add a mount point for files to serve
-acbuild --debug mount add html /usr/share/nginx/html
+acbuild --debug mount add www /usr/share/nginx/www
 
 # Copy files
 acbuild --debug copy ./extra/nginx.conf /etc/nginx/nginx.conf
