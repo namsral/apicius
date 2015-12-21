@@ -5,10 +5,10 @@ PGDATA="/var/lib/postgresql/9.4/data"
 
 if [[ ! -d $PGDATA/base ]]; then
     head -c 25 /dev/urandom | base64 | head -c 32 > /pg-passwd
-	echo "PG_PASSWORD=$(cat /pg-passwd)"
-	mkdir -p $PGDATA
-	chmod 0700 $PGDATA
-	chown postgres:postgres -fR $PGDATA
+    echo "PG_PASSWORD=$(cat /pg-passwd)"
+    mkdir -p $PGDATA
+    chmod 0700 $PGDATA
+    chown postgres:postgres -fR $PGDATA
     su postgres -s /usr/bin/initdb -- --pgdata=$PGDATA --pwfile=/pg-passwd --username=postgres --auth=trust >/dev/null
     rm /pg-passwd
 fi
