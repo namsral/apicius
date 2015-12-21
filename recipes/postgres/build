@@ -43,3 +43,6 @@ acbuild --debug set-exec -- /init
 # Save the ACI and sign with GNUPG
 test -n "$ACIPATH" || ACIPATH=postgres-latest-linux-amd64.aci
 acbuild --debug write $ACIPATH --overwrite
+
+# Print the manifest
+acbuild --debug cat-manifest

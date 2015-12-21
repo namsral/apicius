@@ -43,3 +43,6 @@ acbuild --debug set-exec -- /usr/sbin/nginx -g "daemon off;"
 
 test -n "$ACIPATH" || ACIPATH=nginx-latest-linux-amd64.aci
 acbuild --debug write $ACIPATH
+
+# Print the manifest
+acbuild --debug cat-manifest
