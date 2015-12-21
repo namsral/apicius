@@ -13,7 +13,7 @@ cat << EOF
 Usage: ${0##*/} [-hsuv] [recipe]
 Build, sign and upload ACI files.
 
-    -k          keep the build directory after
+    -k          keep the build directory
     -s          sign the built ACI file with gpg
     -u          upload the ACI and possible signature to a GitHub release
     -h          show help message
