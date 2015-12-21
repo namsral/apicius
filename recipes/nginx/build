@@ -32,6 +32,9 @@ acbuild --debug port add http tcp 80
 # Add a mount point for files to serve
 acbuild --debug mount add www /usr/share/nginx/www
 
+# Add a mount point for additional configuration
+acbuild --debug mount add confd /etc/nginx/conf.d
+
 # Copy files
 acbuild --debug copy ./extra/nginx.conf /etc/nginx/nginx.conf
 
