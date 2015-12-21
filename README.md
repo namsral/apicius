@@ -4,23 +4,28 @@ _Recipes to build, sign and upload app container images_
 
 Apicius is an early collection of recipes to build app container images (ACIs) compatible with the App Container specification, e.g. CoreOS's container runtime [Rocket](https://coreos.com/rkt). 
 
-The first two available recipes are for the Nginx webserver and the PostgreSQL database. They are available from the [release page](https://github.com/namsral/apicius/releases).
+The first two available recipes:
 
-I won't address the benifits of using ACIs except they're very lightweight, the nginx image is less than 2MB.
+- Nginx webserver (~1.3MB)
+- PostgreSQL database (~6.2MB)
+
+_They are available on the [release page](https://github.com/namsral/apicius/releases)._
+
+I won't address the benifits of using ACIs except they're very lightweight which makes them fast to build, load and run.
 
 
 Getting started
 ---------------
 
-To `run` these recipes you can either use the pre-built and signed images or clone the apicius repository and build your own. CoreOS has a great (getting started guide)[https://coreos.com/rkt/docs/latest/getting-started-guide.html) if you are not familiar with Rocket.
+To `run` these recipes you can either use the pre-built and signed images or clone the apicius repository and build your own. CoreOS has a great [getting started guide](https://coreos.com/rkt/docs/latest/getting-started-guide.html) if you are not familiar with Rocket.
 
 __Use pre-built images__
 
-The images are signed and for rkt to veruify the signatures you must instruct rkt to trust the public key: 
+Trust the public key in order to verify the image's signature: 
 
     $ sudo rkt trust --prefix=namsral.com https://github.com/namsral/apicius/blob/gh-pages/dist/aci-pubkeys.gpg
 
-Now you should be able to download and run the images:
+Fetch and run the images:
 
     $ rkt fetch https://github.com/namsral/apicius/releases/download/beta/nginx-latest-linux-amd64.aci
     $ mkdir -p /data/pods/nginx/conf.d /data/pods/nginx/www
@@ -33,7 +38,7 @@ In order to build your own images you can start with the recipes from the apiciu
 
     $ git clone https://github.com/namsral/apicius
 
-Setup your environment file; you may also need to build the `acbuild` tool, see [Compile acbuild on CoreOS][]
+Setup your environment file; you may also need to build the `acbuild` tool, see [Compile acbuild on CoreOS](#compile-acbuild-on-coreos)
 
     $ vi ./environment
     ...
@@ -80,7 +85,7 @@ Build Script
 __Requirements:__
 
 - CoreOS _tested on CoreOS beta (877.1.0)_
-- acbuild v0.2.1+git44c41e2 [githib.com](https://github.com/appc/acbuild)
+- acbuild v0.2.1+git44c41e2 [github.com/appc/acbuild](https://github.com/appc/acbuild)
 
 CoreOS has all the depencies required to run the recipes including the dependancies to build `acbuild`.
 
