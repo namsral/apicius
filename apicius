@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+
+# Copyright (c) 2015 Lars Wiegman. All rights reserved.
+
+# See the show_help function for a description
+
+# fail on script errors and pipe errors
+set -e -o pipefail
+
+show_help() {
+cat << EOF
+Usage: ${0##*/} [-hks] [-u method] [recipe]
+Build, sign and upload app container images (ACI)
+
+	-h		show help message
+	-k		keep the temporary build directory
+	-s		generate a signature with GnuGP
+	-u option	upload image and signature, available options: github
+EOF
+}
+
+# Script options with default values
+KEEPACI=
+SIGNACI=
+UPMETHOD=
+
+# Recipe should always be the last argument
+RECIPE=${@: -1}
+
+# A string with command options
+options=$@
+# An array with all the arguments
+arguments=($options)
+# Loop index
+index=0
+for argument in $options
+do
+	index=$(( $index + 1 ))
+	case $argument in
+		-k|--keep) KEEPACI=1 ;;
+		-s|--sign) SIGNACI=1 ;;
+		-u|--upload-method) UPMETHOD="${arguments[index]}" ;;
+		-h|--help) show_help; exit 0 ;;
+	esac
+done
+
+upload_github() {
+	test -n "$GHTOKEN" -a "$GHOWNER" -a "$GHREPO" -a "$GHTAG" || { echo 'GitHub environment not set'  >&2; exit 1; }
+	release_url="https://api.github.com/repos/${GHOWNER}/${GHREPO}/releases/tags/${GHTAG}"
+	upload_url=$(curl -s -f -L -H "Authorization: token $GHTOKEN" "$release_url" |jq -r '.["upload_url"]| .[0:-13]')
+
+	local files=($@)
+	for fpath in "${files[@]}"; do
+		test -f "$fpath" || { echo "No such file: $fpath"  >&2; exit 1; }
+		case "$fpath" in
+			*.aci) mediatype="application/x-tar" ;;
+			*.asc) mediatype="text/plain" ;;
+			*) mediatype="application/octet-stream" ;;
+		esac
+		fname=${fpath##*/}
+		(curl -s -f --data-binary @"$fpath" \
+			-H "Authorization: token $GHTOKEN" \
+			-H "Accept: application/vnd.github.manifold-preview" \
+			-H "Content-Type: $mediatype" \
+			"${upload_url}?name=$fname")
+	done
+}
+
+follow_recipe() {
+	local rcp="$1"
+	test -d "$rcp" || { echo 'No recipe specified.' >&2; exit 1; }
+	test -f "$rcp/build" || { echo 'No recipe build script found.' >&2; exit 1; }
+
+	T=$(mktemp -d)
+	echo "Bulding ACI in $T"
+	cp -r "$rcp"/* $T
+	(
+		cd "$T"
+		# Make the recipe
+		sudo PATH=$PATH bash ./build
+		# Fix permissions; root is required to run the recipes
+		sudo chown $EUID -R $T
+		# Sign the image
+		for acipath in $T/*.aci
+		do
+			test -n "$SIGNACI" && (gpg --no-default-keyring --armor \
+				--homedir "$GNUPGHOME" --output ${acipath}.asc --detach-sig $acipath)
+		done
+	)
+	if [ -n "UPMETHOD" ]
+	then
+		case "$UPMETHOD" in
+			# Upload to GitHub
+			github) (upload_github $T/*.aci $T/*.aci.asc) ;;
+			*) { echo 'Unknown upload method.' >&2; exit 1; } ;;
+		esac
+	else
+		# Move image and signature to current working directory
+		test -z "$UPMETHOD" && (mv $T/*.aci $T/*.aci.asc "$PWD")
+	fi
+	# Cleanup the temporary build directory
+	test -z "$KEEPACI" && test -d $T && rm -r $T
+}
+
+follow_recipe "$RECIPE"
