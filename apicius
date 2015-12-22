@@ -9,13 +9,13 @@ set -e -o pipefail
 
 show_help() {
 cat << EOF
-Usage: ${0##*/} [-hks] [-u method] [recipe]
+Usage: ${0##*/} [-hks] [-u service] [recipe]
 Build, sign and upload app container images (ACI)
 
 	-h		show help message
 	-k		keep the temporary build directory
 	-s		generate a signature with GnuGP
-	-u option	upload image and signature, available options: github
+	-u service	upload image and signature, available services: github
 EOF
 }
 
@@ -39,7 +39,7 @@ do
 	case $argument in
 		-k|--keep) KEEPACI=1 ;;
 		-s|--sign) SIGNACI=1 ;;
-		-u|--upload-method) UPMETHOD="${arguments[index]}" ;;
+		-u|--upload) UPMETHOD="${arguments[index]}" ;;
 		-h|--help) show_help; exit 0 ;;
 	esac
 done
