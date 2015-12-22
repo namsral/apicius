@@ -6,19 +6,19 @@ Apicius is a build tool with an early collection of predefined recipes to build 
 
 The idea is to clone this repository, create some recipes which hook-up to your CI service and start pushing app container images to your container scheduler. The `apicius` tool is just  a convenience tool to automate the building, signing and uploading of your containers.
 
-__Requirements__
+#### Requirements:
 
-Apicius and its recipes are tested to run on [CoreOS] (beta channel). Other Linux systems which support `systemd-nspawn` should work but your milage may vary.
+Apicius and its recipes are tested to run on [CoreOS]. Other Linux systems which support `systemd-nspawn` should work but your milage may vary.
 
-[apicius-releases]: (https://github.com/namsral/apicius/releases)
-[CoreOS]: (https://coreos.com)
-[Rocket]: (https://coreos.com/rkt)
+[apicius-releases]: https://github.com/namsral/apicius/releases
+[CoreOS]: https://coreos.com
+[Rocket]: https://coreos.com/rkt
 
-__Full example:__
+#### Full example:
 
     $ bash -c "source ./environment && ./build --sign --upload github recipes/nginx"
 
-__Usage:__
+#### Usage:
 
     Usage: apicius [-hks] [-u service] [recipe]                                   
     Build, sign and upload app container images (ACI)                             
@@ -30,9 +30,9 @@ __Usage:__
 
 
 Recipes
------------
+-------
 
-__What is a recipe?__
+#### What is a recipe?
 
 A recipe is a directory containing the main build executable and any content needed by the build script. The contents of the `recipes/nginx` recipe:
 
@@ -60,8 +60,8 @@ The build executable for the `recipes/nginx` recipe is a bash script:
 
 This script runs the [acbuild] tool from CoreOS to build the app container image.
 
-[acbuild]: (https://github.com/appc/acbuild)
-[acbuild-releases]: (https://github.com/appc/acbuild/releases)
+[acbuild]: https://github.com/appc/acbuild
+[acbuild-releases]: https://github.com/appc/acbuild/releases
 
 
 Getting started
@@ -71,7 +71,7 @@ You can either run the pre-built images from the [release page][apicius-releases
 
 The following examples assume you're using Rocket on CoreOS. Guides for both are available on [coreos.com][CoreOS].
 
-__Use pre-built images__
+#### Use pre-built images
 
 The pre-built image are signed, and for Rocket to validate the signatures trust the public key in order to verify the image's signature: 
 
@@ -83,7 +83,7 @@ Fetch and run the images:
     $ mkdir -p /data/pods/nginx/conf.d /data/pods/nginx/www
     $ sudo rkt run --port=http:80 --volume confd,kind=host,source=/data/pods/nginx/conf.d --volume www,kind=host,source=/data/pods/nginx/www,readOnly=false namsral.com/nginx
 
-__Build your own images__
+#### Build your own images
 
 Install the `acbuild` tool from the [acbuild release page][acbuild-releases] or [compile it yourself](#compile-acbuild-on-coreos) using Docker.
 
@@ -107,7 +107,7 @@ Make chances to the recipes if needed and run the build script:
     nginx-latest-linux-amd64.aci
 
 
-__Sign your images__
+#### Sign your images
 
 To sign your images, you'll need to setup a GnuPG key, import the public key in Rocket and setup the GnuPG environment:
 
@@ -121,21 +121,30 @@ To sign your images, you'll need to setup a GnuPG key, import the public key in 
     nginx-latest-linux-amd64.aci
     nginx-latest-linux-amd64.aci.asc
 
-__Upload your images and signatures__
+Now you're ready to load and run your app container image.
 
-To upload your images to a GitHub repository release page you'll need to setup your GitHub environment, see the `environemnt` file.
+    $ rkt fetch ./nginx-latest-linux-amd64.aci
+    $ mkdir -p /data/pods/nginx/conf.d /data/pods/nginx/www
+    $ sudo rkt run --port=http:80 --volume confd,kind=host,source=/data/pods/nginx/conf.d --volume www,kind=host,source=/data/pods/nginx/www,readOnly=false namsral.com/nginx
+
+Or upload them to your storage service for your container runtime to fetch them.
+
+#### Upload your images and signatures to a GutHub release page
+
+To upload your images to a GitHub release page you'll need to setup your GitHub environment, see the `environemnt` file.
 
     $ vi ./environment
     ...
     export GHTOKEN=...
     ...
     $ bash -c "source ./environment && ./build -s -u github recipes/nginx"
+    ...
 
 
 Other
 -------
 
-__Compile `acbuild` on CoreOS__
+#### Compile acbuild on CoreOS
 
 Run the following commands on a CoreOS host:
 
