@@ -2,14 +2,17 @@
 
 #### A tool to build, sign and upload app container images
 
-Apicius is a build tool with an early collection of predefined recipes to build app container images (ACIs) compatible with the App Container specification, e.g. CoreOS's container runtime [Rocket](https://coreos.com/rkt). I won't address the benifits of using ACIs except they're very lightweight which makes them fast to build, load and run. As an example, the pre-built Nginx container is 1.3MB, the equivalent PostgreSQL container is 6.2MB. These pre-built app container images are available on the [release page](https://github.com/namsral/apicius/releases).
+Apicius is a build tool with an early collection of predefined recipes to build app container images (ACIs) compatible with the App Container specification, e.g. CoreOS's container runtime [Rocket]. I won't address the benifits of using ACIs except they're very lightweight which makes them fast to build, load and run. As an example, the pre-built Nginx container is 1.3MB, the equivalent PostgreSQL container is 6.2MB. These pre-built app container images are available on the [apicius release page][apicius-releases].
 
 The idea is to clone this repository, create some recipes which hook-up to your CI service and start pushing app container images to your container scheduler. The `apicius` tool is just  a convenience tool to automate the building, signing and uploading of your containers.
 
-Apicius and its recipes are tested on [CoreOS] and is the easiest way to get started. Other Linux systems which support systemd-nspawn should work but your milage may vary.
+__Requirements__
 
-[acbuild]: (https://github.com/appc/acbuild/releases "a build tool for ACIs")
-[CoreOS]: (coreos.com)
+Apicius and its recipes are tested to run on [CoreOS] (beta channel). Other Linux systems which support `systemd-nspawn` should work but your milage may vary.
+
+[apicius-releases]: (https://github.com/namsral/apicius/releases)
+[CoreOS]: (https://coreos.com)
+[Rocket]: (https://coreos.com/rkt)
 
 __Full example:__
 
@@ -31,12 +34,12 @@ Recipes
 
 __What is a recipe?__
 
-The contents of a `apicius` recipe is a directory holding extra content for the container and a build script:
+A recipe is a directory containing the main build executable and any content needed by the build script. The contents of the `recipes/nginx` recipe:
 
     ./build
     ./extra/nginx.conf
 
-The build script for Nginx is written in bash and uses the `acbuild` tool:
+The build executable for the `recipes/nginx` recipe is a bash script:
 
     #!/usr/bin/env bash
     set -e
@@ -53,16 +56,24 @@ The build script for Nginx is written in bash and uses the `acbuild` tool:
     ...
     # Copy files
     acbuild --debug copy ./extra/nginx.conf /etc/nginx/nginx.conf
+    ...
+
+This script runs the [acbuild] tool from CoreOS to build the app container image.
+
+[acbuild]: (https://github.com/appc/acbuild)
+[acbuild-releases]: (https://github.com/appc/acbuild/releases)
 
 
 Getting started
 ---------------
 
-To run these recipes you can either use the pre-built and signed images or clone the apicius repository and build your own. CoreOS has a great [getting started guide](https://coreos.com/rkt/docs/latest/getting-started-guide.html) if you are not familiar with Rocket.
+You can either run the pre-built images from the [release page][apicius-releases] or build your own.
+
+The following examples assume you're using Rocket on CoreOS. Guides for both are available on [coreos.com][CoreOS].
 
 __Use pre-built images__
 
-Trust the public key in order to verify the image's signature: 
+The pre-built image are signed, and for Rocket to validate the signatures trust the public key in order to verify the image's signature: 
 
     $ sudo rkt trust --prefix=namsral.com https://github.com/namsral/apicius/blob/gh-pages/dist/aci-pubkeys.gpg
 
@@ -72,10 +83,9 @@ Fetch and run the images:
     $ mkdir -p /data/pods/nginx/conf.d /data/pods/nginx/www
     $ sudo rkt run --port=http:80 --volume confd,kind=host,source=/data/pods/nginx/conf.d --volume www,kind=host,source=/data/pods/nginx/www,readOnly=false namsral.com/nginx
 
-
 __Build your own images__
 
-Install the `acbuild` tool from the [acbuild release page][acbuild] or [compile it yourself](#compile-acbuild-on-coreos) using Docker.
+Install the `acbuild` tool from the [acbuild release page][acbuild-releases] or [compile it yourself](#compile-acbuild-on-coreos) using Docker.
 
 In order to build your own images you can start with the recipes from the `apicius` repo:
 
@@ -96,11 +106,10 @@ Make chances to the recipes if needed and run the build script:
     $ ls -1
     nginx-latest-linux-amd64.aci
 
-The image will be built in `/tmp/tmp.61trBfduiy`.
 
 __Sign your images__
 
-To sign your own images, you'll need to setup a GnuPG key, trust your public key and setup the GnuPG environment.
+To sign your images, you'll need to setup a GnuPG key, import the public key in Rocket and setup the GnuPG environment:
 
     $ sudo rkt trust --prefix=<your prefix> ./pubkeys.gpg
     $ vi ./environment
@@ -141,4 +150,3 @@ Include the new binary in your PATH:
     $ PATH=/home/core/bin:$PATH
 
 _tested on CoreOS beta (877.1.0)_
-
