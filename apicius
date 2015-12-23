@@ -87,7 +87,7 @@ follow_recipe() {
 				--homedir "$GNUPGHOME" --output ${acipath}.asc --detach-sig $acipath)
 		done
 	)
-	if [ -n "UPMETHOD" ]
+	if [ -n "$UPMETHOD" ]
 	then
 		case "$UPMETHOD" in
 			# Upload to GitHub
@@ -96,7 +96,7 @@ follow_recipe() {
 		esac
 	else
 		# Move image and signature to current working directory
-		test -z "$UPMETHOD" && (mv $T/*.aci $T/*.aci.asc "$PWD")
+		mv $T/*.aci $T/*.aci.asc "$PWD"
 	fi
 	# Cleanup the temporary build directory
 	test -z "$KEEPACI" && test -d $T && rm -r $T
