@@ -7,10 +7,10 @@
 #PATH=/home/core/bin:$PATH
 
 # GnuPG homedir
-#export GNUPGHOME=
+#GNUPGHOME=
 
 # GitHub environment for upload ACI and signature to a repo release
-#export GHTOKEN=
-#export GHOWNER=
-#export GHREPO=
-#export GHTAG=latest
+#GHTOKEN=
+#GHOWNER=
+#GHREPO=
+#GHTAG=latest

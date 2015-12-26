@@ -20,6 +20,7 @@ EOF
 }
 
 # Script options with default values
+ENVIRONMENT=
 KEEPACI=
 SIGNACI=
 UPMETHOD=
@@ -37,6 +38,7 @@ for argument in $options
 do
 	index=$(( $index + 1 ))
 	case $argument in
+		-e|--environment) ENVIRONMENT="${arguments[index]}" ;;
 		-k|--keep) KEEPACI=1 ;;
 		-s|--sign) SIGNACI=1 ;;
 		-u|--upload) UPMETHOD="${arguments[index]}" ;;
@@ -101,5 +103,8 @@ follow_recipe() {
 	# Cleanup the temporary build directory
 	test -z "$KEEPACI" && test -d $T && rm -r $T
 }
+
+# Load environment file
+test -f "$ENVIRONMENT" && source "$ENVIRONMENT"
 
 follow_recipe "$RECIPE"
