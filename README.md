@@ -2,7 +2,7 @@
 
 #### A tool to build, sign and upload app container images
 
-Apicius is a build tool with an early collection of predefined recipes to build app container images (ACIs) compatible with the App Container specification, e.g. CoreOS's container runtime [Rocket]. I won't address the benifits of using ACIs except they're very lightweight which makes them fast to build, load and run. As an example, the pre-built Nginx container is 1.3MB, the equivalent PostgreSQL container is 6.2MB. These pre-built app container images are available on the [apicius release page][apicius-releases].
+Apicius is a build tool with an early collection of predefined recipes to build app container images (ACIs) compatible with the App Container specification, e.g. CoreOS's container runtime [Rocket]. I won't address the benifits of using ACIs except they're very lightweight which makes them fast to build, load and boot. As an example, the pre-built Nginx container is 1.3MB, the equivalent PostgreSQL container is 6.2MB. These pre-built app container images are available on the [apicius release page][apicius-releases].
 
 The idea is to clone this repository, create some recipes which hook-up to your CI service and start pushing app container images to your container scheduler. The `apicius` tool is just  a convenience tool to automate the building, signing and uploading of your containers.
 
@@ -16,13 +16,14 @@ Apicius and its recipes are tested to run on [CoreOS]. Other Linux systems which
 
 #### Full example:
 
-    $ bash -c "source ./environment && ./build --sign --upload github recipes/nginx"
+    $ apicius --sign --upload github recipes/nginx
 
 #### Usage:
 
-    Usage: apicius [-hks] [-u service] [recipe]                                   
+    Usage: apicius [-ehksu] [-u service] [recipe]
     Build, sign and upload app container images (ACI)                             
                                                                                   
+            -e              load environment from file
             -h              show help message                                     
             -k              keep the temporary build directory                    
             -s              generate a signature with GnuGP                       
@@ -100,7 +101,7 @@ Setup your environment file;
 
 Make chances to the recipes if needed and run the build script:
 
-    $ bash -c "source ./environment && ./build recipes/nginx"
+    $ ./apicius recipes/nginx
     Bulding ACI in /tmp/tmp.61trBfduiy
     ...
     $ ls -1
@@ -116,7 +117,7 @@ To sign your images, you'll need to setup a GnuPG key, import the public key in 
     ...
     export GNUPGHOME=...
     ...
-    $ bash -c "source ./environment && ./build -s recipes/nginx"
+    $ apicious -e ./environment -s recipes/nginx
     $ ls -1
     nginx-latest-linux-amd64.aci
     nginx-latest-linux-amd64.aci.asc
@@ -137,7 +138,7 @@ To upload your images to a GitHub release page you'll need to setup your GitHub 
     ...
     export GHTOKEN=...
     ...
-    $ bash -c "source ./environment && ./build -s -u github recipes/nginx"
+    $ apicious -e ./environment -s -u github recipes/nginx
     ...
 
 
