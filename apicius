@@ -52,7 +52,7 @@ done
 upload_github() {
 	test -n "$GHTOKEN" -a "$GHOWNER" -a "$GHREPO" -a "$GHTAG" || { echo 'GitHub environment not set'  >&2; exit 1; }
 	release_url="https://api.github.com/repos/${GHOWNER}/${GHREPO}/releases/tags/${GHTAG}"
-	upload_url=$(curl -s -f -L -H "Authorization: token $GHTOKEN" "$release_url" |jq -r '.["upload_url"]| .[0:-13]')
+	upload_url=$(curl -sSfL -H "Authorization: token $GHTOKEN" "$release_url" |jq -r '.["upload_url"]| .[0:-13]')
 
 	local files=($@)
 	for fpath in "${files[@]}"; do
@@ -63,7 +63,7 @@ upload_github() {
 			*) mediatype="application/octet-stream" ;;
 		esac
 		fname=${fpath##*/}
-		(curl -s -f --data-binary @"$fpath" \
+		(curl -sSf --data-binary @"$fpath" \
 			-H "Authorization: token $GHTOKEN" \
 			-H "Accept: application/vnd.github.manifold-preview" \
 			-H "Content-Type: $mediatype" \
