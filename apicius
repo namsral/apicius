@@ -71,6 +71,21 @@ upload_github() {
 	done
 }
 
+upload_webdav() {
+	test -n "$WEBDAVURL" || { echo 'WebDAV environment not set'  >&2; exit 1; }
+	[[ "/" != "${WEBDAVURL: -1}" ]] && WEBDAVURL+=/
+	OPTIONS=
+	test -n "$WEBDAVUSER" -a "$WEBDAVPASS" && OPTIONS+=" -u $WEBDAVUSER:$WEBDAVPASS "
+
+	UPLOAD=
+	local files=($@)
+	for fpath in "${files[@]}"; do
+		test -f "$fpath" || { echo "No such file: $fpath"  >&2; exit 1; }
+		UPLOAD+=",$fpath"
+	done
+	curl -sSf $OPTIONS -T "{${UPLOAD:1}}" "$WEBDAVURL"
+}
+
 follow_recipe() {
 	local rcp="$1"
 	test -d "$rcp" || { echo 'No recipe specified.' >&2; exit 1; }
@@ -97,6 +112,7 @@ follow_recipe() {
 		case "$UPMETHOD" in
 			# Upload to GitHub
 			github) (upload_github $T/*.aci $T/*.aci.asc) ;;
+			webdav) (upload_webdav $T/*.aci $T/*.aci.asc) ;;
 			*) { echo 'Unknown upload method.' >&2; exit 1; } ;;
 		esac
 	else

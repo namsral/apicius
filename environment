@@ -14,3 +14,8 @@
 #GHOWNER=
 #GHREPO=
 #GHTAG=latest
+
+# WebDAV environment for uploading ACIs and signatures
+#WEBDAVURL=
+#WEBDAVUSER=
+#WEBDAVPASS=
