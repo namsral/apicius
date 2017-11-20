@@ -132,7 +132,7 @@ Or upload them to your storage service for your container runtime to fetch them.
 
 #### Upload your images and signatures to a GutHub release page
 
-To upload your images to a GitHub release page you'll need to setup your GitHub environment, see the `environemnt` file.
+To upload your images to a GitHub release page you'll need to setup your GitHub environment, see the `environment` file.
 
     $ vi ./environment
     ...
